@@ -140,6 +140,7 @@ fn render(framebuffer: &mut Framebuffer, uniforms: &Uniforms, vertex_array: &[Ve
     }
 }
 
+
 fn main() {
     let window_width = 800;
     let window_height = 600;
@@ -171,6 +172,7 @@ fn main() {
     );
 
     let planet_obj = Obj::load("assets/models/sphere.obj").expect("Failed to load obj");
+    let nave_obj = Obj::load("assets/models/Nave.obj").expect("Failed to load obj");
     let mut time = 0;
 
     while window.is_open() {
@@ -250,6 +252,30 @@ fn main() {
         framebuffer.set_current_color(0x6495ED); // Color para el segundo planeta
         render(&mut framebuffer, &planet2_uniforms, &planet_obj.get_vertex_array());
 
+        // Movimiento orbital de la nave espacial
+        let spaceship_distance = 3.0; 
+        let spaceship_translation = Vec3::new(
+            spaceship_distance * (time as f32 * -0.016).cos(), // Movimiento en X
+            -5.0, // Movimiento en Y 
+            spaceship_distance * (time as f32 * -0.016).sin(), // Movimiento en Z
+        );
+
+        // Escala de la nave 
+        let spaceship_scale = 0.5;
+        let spaceship_model_matrix = create_model_matrix(spaceship_translation, spaceship_scale, Vec3::new(0.0, 0.0, 0.0));
+
+        let spaceship_uniforms = Uniforms {
+            model_matrix: spaceship_model_matrix, // Matriz de modelo actualizada con movimiento orbital
+            view_matrix: create_view_matrix(camera.eye, camera.center, camera.up), // Matriz de vista
+            projection_matrix: create_perspective_matrix(window_width as f32, window_height as f32), 
+            viewport_matrix: create_viewport_matrix(framebuffer_width as f32, framebuffer_height as f32), 
+            time,
+            noise: create_noise(),
+        };
+
+        render(&mut framebuffer, &spaceship_uniforms, &nave_obj.get_vertex_array());
+
+
         // Actualizar la ventana y dormir un poco
         window
             .update_with_buffer(&framebuffer.buffer, framebuffer_width, framebuffer_height)
@@ -257,6 +283,8 @@ fn main() {
 
         std::thread::sleep(frame_delay);
     }
+
+
 }
 
 fn handle_input(window: &Window, camera: &mut Camera) {
