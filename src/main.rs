@@ -173,6 +173,7 @@ fn main() {
 
     let planet_obj = Obj::load("assets/models/sphere.obj").expect("Failed to load obj");
     let nave_obj = Obj::load("assets/models/Nave.obj").expect("Failed to load obj");
+    let sol_obj = Obj::load("assets/models/sol.obj").expect("Failed to load obj");
     let mut time = 0;
 
     while window.is_open() {
@@ -272,6 +273,29 @@ fn main() {
         };
 
         render(&mut framebuffer, &spaceship_uniforms, &nave_obj.get_vertex_array());
+
+
+        // Nave espacial mas pequeña.
+        let navecita_distance = 3.0; 
+        let navecita_translation = Vec3::new(
+            navecita_distance * (time as f32 * -0.016).cos(), // Movimiento en X
+            5.0, // Movimiento en Y 
+            navecita_distance * (time as f32 * -0.016).sin(), // Movimiento en Z
+        );
+
+        let navecita_scale = 0.1;
+        let navecita_model_matrix = create_model_matrix(navecita_translation, navecita_scale, Vec3::new(0.0, 0.0, 0.0));
+
+        let navecita_uniforms = Uniforms {
+            model_matrix: navecita_model_matrix, // Matriz de modelo actualizada con movimiento orbital
+            view_matrix: create_view_matrix(camera.eye, camera.center, camera.up), // Matriz de vista
+            projection_matrix: create_perspective_matrix(window_width as f32, window_height as f32), 
+            viewport_matrix: create_viewport_matrix(framebuffer_width as f32, framebuffer_height as f32), 
+            time,
+            noise: create_noise(),
+        };
+
+        render(&mut framebuffer, &navecita_uniforms, &nave_obj.get_vertex_array());
 
 
         // Actualizar la ventana y dormir un poco
