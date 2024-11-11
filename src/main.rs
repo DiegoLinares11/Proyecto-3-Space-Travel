@@ -161,23 +161,17 @@ fn main() {
 
     framebuffer.set_background_color(0x3d2fc6);
 
-    // model position
-    let translation = Vec3::new(0.0, 0.0, 0.0);
-    let rotation = Vec3::new(0.0, 0.0, 0.0);
-    let scale = 1.0f32;
+    let sun_translation = Vec3::new(0.0, 0.0, 0.0);
+    let sun_scale = 1.0; // Escala del sol
 
-    // camera parameters
     let mut camera = Camera::new(
         Vec3::new(0.0, 0.0, 10.0),
         Vec3::new(0.0, 0.0, 0.0),
-        Vec3::new(0.0, 2.0, 0.0)
+        Vec3::new(0.0, 1.0, 0.0)
     );
 
     let planet_obj = Obj::load("assets/models/sphere.obj").expect("Failed to load obj");
-    let moon_obj = Obj::load("assets/models/sphere.obj").expect("Failed to load obj");
-    let venus_obj = Obj::load("assets/models/sphere.obj").expect("Failed to load obj");
     let mut time = 0;
-
 
     while window.is_open() {
         if window.is_key_down(Key::Escape) {
@@ -188,37 +182,20 @@ fn main() {
         if window.is_key_pressed(Key::Space, minifb::KeyRepeat::No) {
             switch_shader();
         }
-        time += 1;
 
+        time += 1;
         handle_input(&window, &mut camera);
 
         framebuffer.clear();
 
-        //let noise = create_noise();
-        let model_matrix = create_model_matrix(translation, scale, rotation);
+        // Renderizar el Sol
+        let sun_model_matrix = create_model_matrix(sun_translation, sun_scale, Vec3::new(0.0, 0.0, 0.0));
         let view_matrix = create_view_matrix(camera.eye, camera.center, camera.up);
         let projection_matrix = create_perspective_matrix(window_width as f32, window_height as f32);
         let viewport_matrix = create_viewport_matrix(framebuffer_width as f32, framebuffer_height as f32);
-        let uniforms = Uniforms { 
-            model_matrix, 
-            view_matrix, 
-            projection_matrix, 
-            viewport_matrix,
-            time,
-            noise: create_noise(),
-        };
 
-        let vertex_arrays = planet_obj.get_vertex_array(); 
-        render(&mut framebuffer, &uniforms, &vertex_arrays);
-
-        // Renderiza la segunda esfera (Mercurio)
-        let moon_scale = 0.2; // Tamaño de la Mercurio
-        let moon_translation = Vec3::new(1.0, 0.0, 0.0); // Posición de la Mercurio
-        let moon_rotation = Vec3::new(0.0, time as f32 * 0.02, 0.0);
-
-        let moon_model_matrix = create_model_matrix(moon_translation, moon_scale, moon_rotation);
-        let moon_uniforms = Uniforms {
-            model_matrix: moon_model_matrix,
+        let sun_uniforms = Uniforms {
+            model_matrix: sun_model_matrix,
             view_matrix,
             projection_matrix,
             viewport_matrix,
@@ -226,17 +203,21 @@ fn main() {
             noise: create_noise(),
         };
 
-        let moon_vertex_array = planet_obj.get_vertex_array();
-        render(&mut framebuffer, &moon_uniforms, &moon_vertex_array);
+        framebuffer.set_current_color(0xFFDD44); // Color para el Sol
+        render(&mut framebuffer, &sun_uniforms, &planet_obj.get_vertex_array());
 
-        // Renderiza la tercer esfera (Venus)
-        let venus_scale = 0.2; // Tamaño de la Venus
-        let venus_translation = Vec3::new(2.7, 0.0, 0.0); // Posición de la Venus
-        let venus_rotation = Vec3::new(0.0, time as f32 * 0.02, 0.0);
+        // Planeta 1 orbitando alrededor del Sol
+        let planet1_distance = 3.0;
+        let planet1_translation = Vec3::new(
+            planet1_distance * (time as f32 * 0.01).cos(),
+            0.0,
+            planet1_distance * (time as f32 * 0.01).sin(),
+        );
+        let planet1_scale = 0.5;
+        let planet1_model_matrix = create_model_matrix(planet1_translation, planet1_scale, Vec3::new(0.0, 0.0, 0.0));
 
-        let venus_model_matrix = create_model_matrix(venus_translation, venus_scale, venus_rotation);
-        let venus_uniforms = Uniforms {
-            model_matrix: venus_model_matrix,
+        let planet1_uniforms = Uniforms {
+            model_matrix: planet1_model_matrix,
             view_matrix,
             projection_matrix,
             viewport_matrix,
@@ -244,13 +225,32 @@ fn main() {
             noise: create_noise(),
         };
 
-        let venus_vertex_array = planet_obj.get_vertex_array();
-        render(&mut framebuffer, &venus_uniforms, &venus_vertex_array);
+        framebuffer.set_current_color(0x85936d); // Color para el primer planeta
+        render(&mut framebuffer, &planet1_uniforms, &planet_obj.get_vertex_array());
 
+        // Planeta 2 orbitando alrededor del Sol
+        let planet2_distance = 5.0;
+        let planet2_translation = Vec3::new(
+            planet2_distance * (time as f32 * 0.008).cos(),
+            0.0,
+            planet2_distance * (time as f32 * 0.008).sin(),
+        );
+        let planet2_scale = 0.7;
+        let planet2_model_matrix = create_model_matrix(planet2_translation, planet2_scale, Vec3::new(0.0, 0.0, 0.0));
 
-        framebuffer.set_current_color(0x85936d);
-        render(&mut framebuffer, &uniforms, &vertex_arrays);
+        let planet2_uniforms = Uniforms {
+            model_matrix: planet2_model_matrix,
+            view_matrix,
+            projection_matrix,
+            viewport_matrix,
+            time,
+            noise: create_noise(),
+        };
 
+        framebuffer.set_current_color(0x6495ED); // Color para el segundo planeta
+        render(&mut framebuffer, &planet2_uniforms, &planet_obj.get_vertex_array());
+
+        // Actualizar la ventana y dormir un poco
         window
             .update_with_buffer(&framebuffer.buffer, framebuffer_width, framebuffer_height)
             .unwrap();
