@@ -166,9 +166,9 @@ fn main() {
     let sun_scale = 1.0; // Escala del sol
 
     let mut camera = Camera::new(
-        Vec3::new(0.0, 0.0, 10.0),
+        Vec3::new(0.0, 0.0, 20.0),
         Vec3::new(0.0, 0.0, 0.0),
-        Vec3::new(0.0, 1.0, 0.0)
+        Vec3::new(0.0, 3.0, 0.0)
     );
 
     let planet_obj = Obj::load("assets/models/sphere.obj").expect("Failed to load obj");
@@ -209,14 +209,14 @@ fn main() {
         framebuffer.set_current_color(0xFFDD44); // Color para el Sol
         render(&mut framebuffer, &sun_uniforms, &planet_obj.get_vertex_array());
 
-        // Planeta 1 orbitando alrededor del Sol
-        let planet1_distance = 3.0;
+        // Planeta Mercurio orbitando alrededor del Sol
+        let planet1_distance = 1.2;
         let planet1_translation = Vec3::new(
             planet1_distance * (time as f32 * 0.01).cos(),
             0.0,
             planet1_distance * (time as f32 * 0.01).sin(),
         );
-        let planet1_scale = 0.5;
+        let planet1_scale = 0.6;
         let planet1_model_matrix = create_model_matrix(planet1_translation, planet1_scale, Vec3::new(0.0, 0.0, 0.0));
 
         let planet1_uniforms = Uniforms {
@@ -230,14 +230,14 @@ fn main() {
 
         render(&mut framebuffer, &planet1_uniforms, &planet_obj.get_vertex_array());
 
-        // Planeta 2 orbitando alrededor del Sol
-        let planet2_distance = 5.0;
+        // Planeta Venus orbitando alrededor del Sol
+        let planet2_distance = 2.3;
         let planet2_translation = Vec3::new(
             planet2_distance * (time as f32 * 0.008).cos(),
             0.0,
             planet2_distance * (time as f32 * 0.008).sin(),
         );
-        let planet2_scale = 0.7;
+        let planet2_scale = 0.75;
         let planet2_model_matrix = create_model_matrix(planet2_translation, planet2_scale, Vec3::new(0.0, 0.0, 0.0));
 
         let planet2_uniforms = Uniforms {
@@ -250,6 +250,134 @@ fn main() {
         };
 
         render(&mut framebuffer, &planet2_uniforms, &planet_obj.get_vertex_array());
+
+
+        // Planeta Tierra orbitando alrededor del Sol
+        let planet3_distance = 4.2;
+        let planet3_translation = Vec3::new(
+            planet3_distance * (time as f32 * 0.006).cos(),
+            0.0,
+            planet3_distance * (time as f32 * 0.006).sin(),
+        );
+        let planet3_scale = 1.0;
+        let planet3_model_matrix = create_model_matrix(planet3_translation, planet3_scale, Vec3::new(0.0, 0.0, 0.0));
+
+        let planet3_uniforms = Uniforms {
+            model_matrix: planet3_model_matrix,
+            view_matrix,
+            projection_matrix,
+            viewport_matrix,
+            time,
+            noise: create_noise(),
+        };
+
+        render(&mut framebuffer, &planet3_uniforms, &planet_obj.get_vertex_array());
+
+        // Planeta Marte orbitando alrededor del Sol
+        let planet4_distance = 6.1;
+        let planet4_translation = Vec3::new(
+            planet4_distance * (time as f32 * 0.005).cos(),
+            0.0,
+            planet4_distance * (time as f32 * 0.005).sin(),
+        );
+        let planet4_scale = 0.7;
+        let planet4_model_matrix = create_model_matrix(planet4_translation, planet4_scale, Vec3::new(0.0, 0.0, 0.0));
+
+        let planet4_uniforms = Uniforms {
+            model_matrix: planet4_model_matrix,
+            view_matrix,
+            projection_matrix,
+            viewport_matrix,
+            time,
+            noise: create_noise(),
+        };
+
+        render(&mut framebuffer, &planet4_uniforms, &planet_obj.get_vertex_array());
+
+        // Planeta Júpiter orbitando alrededor del Sol
+        let planet5_distance = 10.6;
+        let planet5_translation = Vec3::new(
+            planet5_distance * (time as f32 * 0.004).cos(),
+            0.0,
+            planet5_distance * (time as f32 * 0.004).sin(),
+        );
+        let planet5_scale = 2.1;
+        let planet5_model_matrix = create_model_matrix(planet5_translation, planet5_scale, Vec3::new(0.0, 0.0, 0.0));
+
+        let planet5_uniforms = Uniforms {
+            model_matrix: planet5_model_matrix,
+            view_matrix,
+            projection_matrix,
+            viewport_matrix,
+            time,
+            noise: create_noise(),
+        };
+
+        render(&mut framebuffer, &planet5_uniforms, &planet_obj.get_vertex_array());
+
+        // Planeta Saturno orbitando alrededor del Sol
+        let planet6_distance = 13.9;
+        let planet6_translation = Vec3::new(
+            planet6_distance * (time as f32 * 0.003).cos(),
+            0.0,
+            planet6_distance * (time as f32 * 0.003).sin(),
+        );
+        let planet6_scale = 1.8;
+        let planet6_model_matrix = create_model_matrix(planet6_translation, planet6_scale, Vec3::new(0.0, 0.0, 0.0));
+
+        let planet6_uniforms = Uniforms {
+            model_matrix: planet6_model_matrix,
+            view_matrix,
+            projection_matrix,
+            viewport_matrix,
+            time,
+            noise: create_noise(),
+        };
+
+        render(&mut framebuffer, &planet6_uniforms, &planet_obj.get_vertex_array());
+
+        // Planeta Urano orbitando alrededor del Sol
+        let planet7_distance = 17.3;
+        let planet7_translation = Vec3::new(
+            planet7_distance * (time as f32 * 0.002).cos(),
+            0.0,
+            planet7_distance * (time as f32 * 0.002).sin(),
+        );
+        let planet7_scale = 1.6;
+        let planet7_model_matrix = create_model_matrix(planet7_translation, planet7_scale, Vec3::new(0.0, 0.0, 0.0));
+
+        let planet7_uniforms = Uniforms {
+            model_matrix: planet7_model_matrix,
+            view_matrix,
+            projection_matrix,
+            viewport_matrix,
+            time,
+            noise: create_noise(),
+        };
+
+        render(&mut framebuffer, &planet7_uniforms, &planet_obj.get_vertex_array());
+
+        // Planeta Neptuno orbitando alrededor del Sol
+        let planet8_distance = 20.9;
+        let planet8_translation = Vec3::new(
+            planet8_distance * (time as f32 * 0.001).cos(),
+            0.0,
+            planet8_distance * (time as f32 * 0.001).sin(),
+        );
+        let planet8_scale = 1.6;
+        let planet8_model_matrix = create_model_matrix(planet8_translation, planet8_scale, Vec3::new(0.0, 0.0, 0.0));
+
+        let planet8_uniforms = Uniforms {
+            model_matrix: planet8_model_matrix,
+            view_matrix,
+            projection_matrix,
+            viewport_matrix,
+            time,
+            noise: create_noise(),
+        };
+
+        render(&mut framebuffer, &planet8_uniforms, &planet_obj.get_vertex_array());
+
 
         // Movimiento orbital de la nave espacial
         let spaceship_distance = 3.0; 
