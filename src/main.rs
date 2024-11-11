@@ -168,13 +168,14 @@ fn main() {
 
     // camera parameters
     let mut camera = Camera::new(
-        Vec3::new(0.0, 0.0, 5.0),
+        Vec3::new(0.0, 0.0, 10.0),
         Vec3::new(0.0, 0.0, 0.0),
-        Vec3::new(0.0, 1.0, 0.0)
+        Vec3::new(0.0, 2.0, 0.0)
     );
 
-    let planet_obj = Obj::load("assets/models/sphere-1.obj").expect("Failed to load obj");
-    let moon_obj = Obj::load("assets/models/Nave.obj").expect("Failed to load obj");
+    let planet_obj = Obj::load("assets/models/sphere.obj").expect("Failed to load obj");
+    let moon_obj = Obj::load("assets/models/sphere.obj").expect("Failed to load obj");
+    let venus_obj = Obj::load("assets/models/sphere.obj").expect("Failed to load obj");
     let mut time = 0;
 
 
@@ -210,9 +211,9 @@ fn main() {
         let vertex_arrays = planet_obj.get_vertex_array(); 
         render(&mut framebuffer, &uniforms, &vertex_arrays);
 
-        // Renderiza la segunda esfera (luna)
-        let moon_scale = 0.5; // Tamaño de la luna
-        let moon_translation = Vec3::new(2.25, 2.25, 0.0); // Posición de la luna
+        // Renderiza la segunda esfera (Mercurio)
+        let moon_scale = 0.2; // Tamaño de la Mercurio
+        let moon_translation = Vec3::new(1.0, 0.0, 0.0); // Posición de la Mercurio
         let moon_rotation = Vec3::new(0.0, time as f32 * 0.02, 0.0);
 
         let moon_model_matrix = create_model_matrix(moon_translation, moon_scale, moon_rotation);
@@ -225,8 +226,26 @@ fn main() {
             noise: create_noise(),
         };
 
-        let moon_vertex_array = moon_obj.get_vertex_array();
+        let moon_vertex_array = planet_obj.get_vertex_array();
         render(&mut framebuffer, &moon_uniforms, &moon_vertex_array);
+
+        // Renderiza la tercer esfera (Venus)
+        let venus_scale = 0.2; // Tamaño de la Venus
+        let venus_translation = Vec3::new(2.7, 0.0, 0.0); // Posición de la Venus
+        let venus_rotation = Vec3::new(0.0, time as f32 * 0.02, 0.0);
+
+        let venus_model_matrix = create_model_matrix(venus_translation, venus_scale, venus_rotation);
+        let venus_uniforms = Uniforms {
+            model_matrix: venus_model_matrix,
+            view_matrix,
+            projection_matrix,
+            viewport_matrix,
+            time,
+            noise: create_noise(),
+        };
+
+        let venus_vertex_array = planet_obj.get_vertex_array();
+        render(&mut framebuffer, &venus_uniforms, &venus_vertex_array);
 
 
         framebuffer.set_current_color(0x85936d);
