@@ -174,7 +174,7 @@ fn main() {
     );
 
     let planet_obj = Obj::load("assets/models/sphere-1.obj").expect("Failed to load obj");
-    let moon_obj = Obj::load("assets/models/sphere.obj").expect("Failed to load obj");
+    let moon_obj = Obj::load("assets/models/Nave.obj").expect("Failed to load obj");
     let mut time = 0;
 
 
