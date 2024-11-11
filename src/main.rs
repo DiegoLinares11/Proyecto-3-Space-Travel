@@ -227,7 +227,6 @@ fn main() {
             noise: create_noise(),
         };
 
-        framebuffer.set_current_color(0x85936d); // Color para el primer planeta
         render(&mut framebuffer, &planet1_uniforms, &planet_obj.get_vertex_array());
 
         // Planeta 2 orbitando alrededor del Sol
@@ -249,7 +248,6 @@ fn main() {
             noise: create_noise(),
         };
 
-        framebuffer.set_current_color(0x6495ED); // Color para el segundo planeta
         render(&mut framebuffer, &planet2_uniforms, &planet_obj.get_vertex_array());
 
         // Movimiento orbital de la nave espacial
