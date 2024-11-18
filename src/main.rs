@@ -17,7 +17,7 @@ use vertex::Vertex;
 use obj::Obj;
 use camera::Camera;
 use triangle::triangle;
-use shaders::{vertex_shader, fragment_shader, switch_shader};
+use shaders::{vertex_shader, fragment_shader, switch_shader, fragment_shader2};
 use fastnoise_lite::{FastNoiseLite, NoiseType, FractalType};
 
 pub struct Uniforms {
@@ -26,7 +26,7 @@ pub struct Uniforms {
     projection_matrix: Mat4,
     viewport_matrix: Mat4,
     time: u32,
-    noise: FastNoiseLite
+    noise: FastNoiseLite,
 }
 
 fn create_noise() -> FastNoiseLite {
@@ -140,6 +140,50 @@ fn render(framebuffer: &mut Framebuffer, uniforms: &Uniforms, vertex_array: &[Ve
     }
 }
 
+fn render_sol(framebuffer: &mut Framebuffer, uniforms: &Uniforms, vertex_array: &[Vertex]) {
+    // Vertex Shader
+    let mut transformed_vertices = Vec::with_capacity(vertex_array.len());
+    for vertex in vertex_array {
+        let transformed = vertex_shader(vertex, uniforms);
+        transformed_vertices.push(transformed);
+    }
+
+    // Primitive Assembly
+    let mut triangles = Vec::new();
+    for i in (0..transformed_vertices.len()).step_by(3) {
+        if i + 2 < transformed_vertices.len() {
+            triangles.push([
+                transformed_vertices[i].clone(),
+                transformed_vertices[i + 1].clone(),
+                transformed_vertices[i + 2].clone(),
+            ]);
+        }
+    }
+
+    // Rasterization
+    let mut fragments = Vec::new();
+    for tri in &triangles {
+        fragments.extend(triangle(&tri[0], &tri[1], &tri[2]));
+    }
+
+    // Fragment Processing
+    for fragment in fragments {
+        let x = fragment.position.x as usize;
+        let y = fragment.position.y as usize;
+
+        if x < framebuffer.width && y < framebuffer.height {
+            let shaded_color = fragment_shader2(&fragment, &uniforms);
+            let color = shaded_color.to_hex();
+            framebuffer.set_current_color(color);
+
+            framebuffer.set_emission_color(0xFFFF00); // Emisión amarilla brillante
+
+            framebuffer.point(x, y, fragment.depth);
+        }
+    }
+}
+
+
 
 fn main() {
     let window_width = 800;
@@ -150,7 +194,7 @@ fn main() {
 
     let mut framebuffer = Framebuffer::new(framebuffer_width, framebuffer_height);
     let mut window = Window::new(
-        "Animated Fragment Shader",
+        "Sistema solar",
         window_width,
         window_height,
         WindowOptions::default(),
@@ -160,10 +204,10 @@ fn main() {
     window.set_position(500, 500);
     window.update();
 
-    framebuffer.set_background_color(0x3d2fc6);
+    framebuffer.set_background_color(000000);
 
     let sun_translation = Vec3::new(0.0, 0.0, 0.0);
-    let sun_scale = 1.0; // Escala del sol
+    let sun_scale = 2.0; // Escala del sol
 
     let mut camera = Camera::new(
         Vec3::new(0.0, 0.0, 20.0),
@@ -207,14 +251,15 @@ fn main() {
         };
 
         framebuffer.set_current_color(0xFFDD44); // Color para el Sol
-        render(&mut framebuffer, &sun_uniforms, &planet_obj.get_vertex_array());
+        render_sol(&mut framebuffer, &sun_uniforms, &planet_obj.get_vertex_array());
+        framebuffer.apply_emission();
 
         // Planeta Mercurio orbitando alrededor del Sol
-        let planet1_distance = 1.2;
+        let planet1_distance = 1.1;
         let planet1_translation = Vec3::new(
-            planet1_distance * (time as f32 * 0.01).cos(),
+            planet1_distance * (time as f32 * 0.08).cos(),
             0.0,
-            planet1_distance * (time as f32 * 0.01).sin(),
+            planet1_distance * (time as f32 * 0.08).sin(),
         );
         let planet1_scale = 0.6;
         let planet1_model_matrix = create_model_matrix(planet1_translation, planet1_scale, Vec3::new(0.0, 0.0, 0.0));
@@ -230,12 +275,13 @@ fn main() {
 
         render(&mut framebuffer, &planet1_uniforms, &planet_obj.get_vertex_array());
 
+
         // Planeta Venus orbitando alrededor del Sol
-        let planet2_distance = 2.3;
+        let planet2_distance = 2.1;
         let planet2_translation = Vec3::new(
-            planet2_distance * (time as f32 * 0.008).cos(),
+            planet2_distance * (time as f32 * 0.05).cos(),
             0.0,
-            planet2_distance * (time as f32 * 0.008).sin(),
+            planet2_distance * (time as f32 * 0.05).sin(),
         );
         let planet2_scale = 0.75;
         let planet2_model_matrix = create_model_matrix(planet2_translation, planet2_scale, Vec3::new(0.0, 0.0, 0.0));
@@ -253,11 +299,11 @@ fn main() {
 
 
         // Planeta Tierra orbitando alrededor del Sol
-        let planet3_distance = 4.2;
+        let planet3_distance = 3.9;
         let planet3_translation = Vec3::new(
-            planet3_distance * (time as f32 * 0.006).cos(),
+            planet3_distance * (time as f32 * 0.03).cos(),
             0.0,
-            planet3_distance * (time as f32 * 0.006).sin(),
+            planet3_distance * (time as f32 * 0.03).sin(),
         );
         let planet3_scale = 1.0;
         let planet3_model_matrix = create_model_matrix(planet3_translation, planet3_scale, Vec3::new(0.0, 0.0, 0.0));
@@ -274,11 +320,11 @@ fn main() {
         render(&mut framebuffer, &planet3_uniforms, &planet_obj.get_vertex_array());
 
         // Planeta Marte orbitando alrededor del Sol
-        let planet4_distance = 6.1;
+        let planet4_distance = 5.1;
         let planet4_translation = Vec3::new(
-            planet4_distance * (time as f32 * 0.005).cos(),
+            planet4_distance * (time as f32 * 0.03).cos(),
             0.0,
-            planet4_distance * (time as f32 * 0.005).sin(),
+            planet4_distance * (time as f32 * 0.03).sin(),
         );
         let planet4_scale = 0.7;
         let planet4_model_matrix = create_model_matrix(planet4_translation, planet4_scale, Vec3::new(0.0, 0.0, 0.0));
@@ -295,11 +341,11 @@ fn main() {
         render(&mut framebuffer, &planet4_uniforms, &planet_obj.get_vertex_array());
 
         // Planeta Júpiter orbitando alrededor del Sol
-        let planet5_distance = 10.6;
+        let planet5_distance = 7.1;
         let planet5_translation = Vec3::new(
-            planet5_distance * (time as f32 * 0.004).cos(),
+            planet5_distance * (time as f32 * 0.02).cos(),
             0.0,
-            planet5_distance * (time as f32 * 0.004).sin(),
+            planet5_distance * (time as f32 * 0.02).sin(),
         );
         let planet5_scale = 2.1;
         let planet5_model_matrix = create_model_matrix(planet5_translation, planet5_scale, Vec3::new(0.0, 0.0, 0.0));
@@ -316,11 +362,11 @@ fn main() {
         render(&mut framebuffer, &planet5_uniforms, &planet_obj.get_vertex_array());
 
         // Planeta Saturno orbitando alrededor del Sol
-        let planet6_distance = 13.9;
+        let planet6_distance = 9.9;
         let planet6_translation = Vec3::new(
-            planet6_distance * (time as f32 * 0.003).cos(),
+            planet6_distance * (time as f32 * 0.015).cos(),
             0.0,
-            planet6_distance * (time as f32 * 0.003).sin(),
+            planet6_distance * (time as f32 * 0.015).sin(),
         );
         let planet6_scale = 1.8;
         let planet6_model_matrix = create_model_matrix(planet6_translation, planet6_scale, Vec3::new(0.0, 0.0, 0.0));
@@ -337,11 +383,11 @@ fn main() {
         render(&mut framebuffer, &planet6_uniforms, &planet_obj.get_vertex_array());
 
         // Planeta Urano orbitando alrededor del Sol
-        let planet7_distance = 17.3;
+        let planet7_distance = 12.6;
         let planet7_translation = Vec3::new(
-            planet7_distance * (time as f32 * 0.002).cos(),
+            planet7_distance * (time as f32 * 0.01).cos(),
             0.0,
-            planet7_distance * (time as f32 * 0.002).sin(),
+            planet7_distance * (time as f32 * 0.01).sin(),
         );
         let planet7_scale = 1.6;
         let planet7_model_matrix = create_model_matrix(planet7_translation, planet7_scale, Vec3::new(0.0, 0.0, 0.0));
@@ -358,11 +404,11 @@ fn main() {
         render(&mut framebuffer, &planet7_uniforms, &planet_obj.get_vertex_array());
 
         // Planeta Neptuno orbitando alrededor del Sol
-        let planet8_distance = 20.9;
+        let planet8_distance = 16.9;
         let planet8_translation = Vec3::new(
-            planet8_distance * (time as f32 * 0.001).cos(),
+            planet8_distance * (time as f32 * 0.01).cos(),
             0.0,
-            planet8_distance * (time as f32 * 0.001).sin(),
+            planet8_distance * (time as f32 * 0.01).sin(),
         );
         let planet8_scale = 1.6;
         let planet8_model_matrix = create_model_matrix(planet8_translation, planet8_scale, Vec3::new(0.0, 0.0, 0.0));

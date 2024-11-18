@@ -61,6 +61,25 @@ pub fn fragment_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
     }
   }
 }
+pub fn fragment_shader2(fragment: &Fragment, uniforms: &Uniforms) -> Color {
+    return emissive_shader(fragment, uniforms);  
+}
+
+fn emissive_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
+  let intensity = fragment.intensity;
+
+  // Color base del material, un amarillo cálido
+  let base_color = Color::new(255, 223, 0); // Amarillo cálido
+
+  // Color de emisión aún más brillante, amarillo intenso
+  let emission_color = Color::new(255, 255, 102) * (intensity * 2.0); // Amarillo más claro y brillante
+
+  // Mezclamos el color base y el color de emisión
+  let final_color = base_color.lerp(&emission_color, 0.9); // Mayor peso del color de emisión
+
+  final_color
+}
+
 
 // Función para cambiar el índice del shader activo
 pub fn switch_shader() {
@@ -95,6 +114,31 @@ fn moon_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
   // Ajustar la intensidad del color final para simular la iluminación
   base_color * fragment.intensity
 }
+
+fn sun_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
+  let x = fragment.vertex_position.x;
+  let y = fragment.vertex_position.y;
+  let t = uniforms.time as f32 * 0.5; // Tiempo para simular movimiento dinámico del brillo
+
+  // Gradiente central hacia los bordes
+  let distance_from_center = (x * x + y * y).sqrt();
+  let glow_intensity = (1.0 - distance_from_center).clamp(0.0, 1.0); // Más brillante en el centro
+
+  // Color base del Sol (amarillo brillante)
+  let core_color = Color::new(255, 223, 0); // Amarillo intenso
+  let glow_color = Color::new(255, 140, 0); // Amarillo-naranja para el borde
+
+  // Simulación de destellos dinámicos usando ruido
+  let noise_value = uniforms.noise.get_noise_2d(x * 100.0 + t, y * 100.0 + t);
+  let flicker = (noise_value * 0.5 + 0.5).clamp(0.5, 1.0); // Ruido suavizado para destellos
+
+  // Color final mezclando gradiente y destellos
+  let base_color = core_color.lerp(&glow_color, 1.0 - glow_intensity); // Gradiente centro-borde
+  let final_color = base_color * (glow_intensity * flicker);
+
+  final_color
+}
+
 
 
 fn earth_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
