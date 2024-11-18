@@ -17,7 +17,7 @@ use vertex::Vertex;
 use obj::Obj;
 use camera::Camera;
 use triangle::triangle;
-use shaders::{vertex_shader, fragment_shader, switch_shader, fragment_shader2, venus_shader, jupiter_shader, saturn_shader};
+use shaders::{vertex_shader, fragment_shader, switch_shader, fragment_shader2, venus_shader, jupiter_shader, saturn_shader, mars_shader, earth_shader, uranus_shader, neptune_shader};
 use fastnoise_lite::{FastNoiseLite, NoiseType, FractalType};
 
 pub struct Uniforms {
@@ -296,6 +296,175 @@ fn render_saturn(framebuffer: &mut Framebuffer, uniforms: &Uniforms, vertex_arra
     }
 }
 
+fn render_mars(framebuffer: &mut Framebuffer, uniforms: &Uniforms, vertex_array: &[Vertex]) {
+    let mut transformed_vertices = Vec::with_capacity(vertex_array.len());
+    for vertex in vertex_array {
+        let transformed = vertex_shader(vertex, uniforms);
+        transformed_vertices.push(transformed);
+    }
+
+    let mut triangles = Vec::new();
+    for i in (0..transformed_vertices.len()).step_by(3) {
+        if i + 2 < transformed_vertices.len() {
+            triangles.push([
+                transformed_vertices[i].clone(),
+                transformed_vertices[i + 1].clone(),
+                transformed_vertices[i + 2].clone(),
+            ]);
+        }
+    }
+
+    let mut fragments = Vec::new();
+    for tri in &triangles {
+        fragments.extend(triangle(&tri[0], &tri[1], &tri[2]));
+    }
+
+    for fragment in fragments {
+        let x = fragment.position.x as usize;
+        let y = fragment.position.y as usize;
+
+        if x < framebuffer.width && y < framebuffer.height {
+            let shaded_color = mars_shader(&fragment, uniforms);
+            let color = shaded_color.to_hex();
+            framebuffer.set_current_color(color);
+            framebuffer.point(x, y, fragment.depth);
+        }
+    }
+}
+
+fn render_earth(framebuffer: &mut Framebuffer, uniforms: &Uniforms, vertex_array: &[Vertex]) {
+    let mut transformed_vertices = Vec::with_capacity(vertex_array.len());
+    for vertex in vertex_array {
+        let transformed = vertex_shader(vertex, uniforms);
+        transformed_vertices.push(transformed);
+    }
+
+    let mut triangles = Vec::new();
+    for i in (0..transformed_vertices.len()).step_by(3) {
+        if i + 2 < transformed_vertices.len() {
+            triangles.push([
+                transformed_vertices[i].clone(),
+                transformed_vertices[i + 1].clone(),
+                transformed_vertices[i + 2].clone(),
+            ]);
+        }
+    }
+
+    let mut fragments = Vec::new();
+    for tri in &triangles {
+        fragments.extend(triangle(&tri[0], &tri[1], &tri[2]));
+    }
+
+    for fragment in fragments {
+        let x = fragment.position.x as usize;
+        let y = fragment.position.y as usize;
+
+        if x < framebuffer.width && y < framebuffer.height {
+            let shaded_color = earth_shader(&fragment, uniforms);
+            let color = shaded_color.to_hex();
+            framebuffer.set_current_color(color);
+            framebuffer.point(x, y, fragment.depth);
+        }
+    }
+}
+
+fn render_uranus(framebuffer: &mut Framebuffer, uniforms: &Uniforms, vertex_array: &[Vertex]) {
+    let mut transformed_vertices = Vec::with_capacity(vertex_array.len());
+    for vertex in vertex_array {
+        let transformed = vertex_shader(vertex, uniforms);
+        transformed_vertices.push(transformed);
+    }
+
+    let mut triangles = Vec::new();
+    for i in (0..transformed_vertices.len()).step_by(3) {
+        if i + 2 < transformed_vertices.len() {
+            triangles.push([
+                transformed_vertices[i].clone(),
+                transformed_vertices[i + 1].clone(),
+                transformed_vertices[i + 2].clone(),
+            ]);
+        }
+    }
+
+    let mut fragments = Vec::new();
+    for tri in &triangles {
+        fragments.extend(triangle(&tri[0], &tri[1], &tri[2]));
+    }
+
+    for fragment in fragments {
+        let x = fragment.position.x as usize;
+        let y = fragment.position.y as usize;
+
+        if x < framebuffer.width && y < framebuffer.height {
+            let shaded_color = uranus_shader(&fragment, uniforms);
+            let color = shaded_color.to_hex();
+            framebuffer.set_current_color(color);
+            framebuffer.point(x, y, fragment.depth);
+        }
+    }
+}
+
+
+fn render_neptune(framebuffer: &mut Framebuffer, uniforms: &Uniforms, vertex_array: &[Vertex]) {
+    let mut transformed_vertices = Vec::with_capacity(vertex_array.len());
+    for vertex in vertex_array {
+        let transformed = vertex_shader(vertex, uniforms);
+        transformed_vertices.push(transformed);
+    }
+
+    let mut triangles = Vec::new();
+    for i in (0..transformed_vertices.len()).step_by(3) {
+        if i + 2 < transformed_vertices.len() {
+            triangles.push([
+                transformed_vertices[i].clone(),
+                transformed_vertices[i + 1].clone(),
+                transformed_vertices[i + 2].clone(),
+            ]);
+        }
+    }
+
+    let mut fragments = Vec::new();
+    for tri in &triangles {
+        fragments.extend(triangle(&tri[0], &tri[1], &tri[2]));
+    }
+
+    for fragment in fragments {
+        let x = fragment.position.x as usize;
+        let y = fragment.position.y as usize;
+
+        if x < framebuffer.width && y < framebuffer.height {
+            let shaded_color = neptune_shader(&fragment, uniforms);
+            let color = shaded_color.to_hex();
+            framebuffer.set_current_color(color);
+            framebuffer.point(x, y, fragment.depth);
+        }
+    }
+}
+
+fn render_point(framebuffer: &mut Framebuffer, position: Vec3, radius: usize) {
+    let x = position.x as isize;
+    let y = position.y as isize;
+
+    let radius_squared = (radius as isize).pow(2);
+
+    for dx in -(radius as isize)..=(radius as isize) {
+        for dy in -(radius as isize)..=(radius as isize) {
+            if dx * dx + dy * dy <= radius_squared {
+                let px = x + dx;
+                let py = y + dy;
+
+                if px >= 0 && py >= 0 && (px as usize) < framebuffer.width && (py as usize) < framebuffer.height {
+                    framebuffer.set_current_color(0xFFFFFF); // Blanco
+                    framebuffer.point(px as usize, py as usize, position.z);
+                }
+            }
+        }
+    }
+}
+
+
+
+
 
 
 fn main() {
@@ -363,18 +532,22 @@ fn main() {
             noise: create_noise(),
         };
 
+
+
+
         framebuffer.set_current_color(0xFFDD44); // Color para el Sol
         render_sol(&mut framebuffer, &sun_uniforms, &planet_obj.get_vertex_array());
         framebuffer.apply_emission();
 
         // Planeta Mercurio orbitando alrededor del Sol
-        let planet1_distance = 1.1;
+        let planet1_distance = 2.1;
         let planet1_translation = Vec3::new(
             planet1_distance * (time as f32 * 0.08).cos(),
             0.0,
             planet1_distance * (time as f32 * 0.08).sin(),
         );
-        let planet1_scale = 0.6;
+
+        let planet1_scale = 0.7;
         let planet1_model_matrix = create_model_matrix(planet1_translation, planet1_scale, Vec3::new(0.0, 0.0, 0.0));
 
         let planet1_uniforms = Uniforms {
@@ -388,15 +561,50 @@ fn main() {
 
         render(&mut framebuffer, &planet1_uniforms, &planet_obj.get_vertex_array());
 
+    // Crear rastros para el planeta
+    let trail_length = 50; // Número de puntos en el rastro
+
+    for i in 0..trail_length {
+        // Calcula un desfase temporal
+        let trail_time = time as f32 - (i as f32 * 0.2);
+
+        // Posición del punto basado en el tiempo desfaseado
+        let trail_translation = Vec3::new(
+            planet1_distance * (trail_time * 0.08).cos(),
+            0.0,
+            planet1_distance * (trail_time * 0.08).sin() - 0.05 * i as f32, // Desfase gradual en Z
+        );
+
+        // Escala pequeña para los puntos
+        let trail_scale = 0.1;
+
+        // Matriz de transformación para el "mini-planeta"
+        let trail_model_matrix = create_model_matrix(trail_translation, trail_scale, Vec3::new(0.0, 0.0, 0.0));
+
+        // Uniforms para el rastro
+        let trail_uniforms = Uniforms {
+            model_matrix: trail_model_matrix,
+            view_matrix,
+            projection_matrix,
+            viewport_matrix,
+            time,
+            noise: create_noise(),
+        };
+
+        // Renderiza el punto como un mini-planeta
+        render(&mut framebuffer, &trail_uniforms, &planet_obj.get_vertex_array());
+    }
+
+
 
         // Planeta Venus orbitando alrededor del Sol
-        let planet2_distance = 2.1;
+        let planet2_distance = 3.3;
         let planet2_translation = Vec3::new(
             planet2_distance * (time as f32 * 0.05).cos(),
             0.0,
             planet2_distance * (time as f32 * 0.05).sin(),
         );
-        let planet2_scale = 0.75;
+        let planet2_scale = 0.85;
         let planet2_model_matrix = create_model_matrix(planet2_translation, planet2_scale, Vec3::new(0.0, 0.0, 0.0));
 
         let planet2_uniforms = Uniforms {
@@ -411,12 +619,46 @@ fn main() {
         render_venus(&mut framebuffer, &planet2_uniforms, &planet_obj.get_vertex_array());
 
 
-        // Planeta Tierra orbitando alrededor del Sol
-        let planet3_distance = 3.9;
-        let planet3_translation = Vec3::new(
-            planet3_distance * (time as f32 * 0.03).cos(),
+            // Crear rastros para el planeta
+    let trail_length = 50; // Número de puntos en el rastro
+
+    for i in 0..trail_length {
+        // Calcula un desfase temporal
+        let trail_time = time as f32 - (i as f32 * 0.2);
+
+        // Posición del punto basado en el tiempo desfaseado
+        let trail_translation = Vec3::new(
+            planet2_distance * (trail_time * 0.05).cos(),
             0.0,
-            planet3_distance * (time as f32 * 0.03).sin(),
+            planet2_distance * (trail_time * 0.05).sin() - 0.05 * i as f32, // Desfase gradual en Z
+        );
+
+        // Escala pequeña para los puntos
+        let trail_scale = 0.1;
+
+        // Matriz de transformación para el "mini-planeta"
+        let trail_model_matrix = create_model_matrix(trail_translation, trail_scale, Vec3::new(0.0, 0.0, 0.0));
+
+        // Uniforms para el rastro
+        let trail_uniforms = Uniforms {
+            model_matrix: trail_model_matrix,
+            view_matrix,
+            projection_matrix,
+            viewport_matrix,
+            time,
+            noise: create_noise(),
+        };
+
+        // Renderiza el punto como un mini-planeta
+        render(&mut framebuffer, &trail_uniforms, &planet_obj.get_vertex_array());
+    }
+
+        // Planeta Tierra orbitando alrededor del Sol
+        let planet3_distance = 5.1;
+        let planet3_translation = Vec3::new(
+            planet3_distance * (time as f32 * 0.045).cos(),
+            0.0,
+            planet3_distance * (time as f32 * 0.045).sin(),
         );
         let planet3_scale = 1.0;
         let planet3_model_matrix = create_model_matrix(planet3_translation, planet3_scale, Vec3::new(0.0, 0.0, 0.0));
@@ -430,14 +672,14 @@ fn main() {
             noise: create_noise(),
         };
 
-        render(&mut framebuffer, &planet3_uniforms, &planet_obj.get_vertex_array());
+        render_earth(&mut framebuffer, &planet3_uniforms, &planet_obj.get_vertex_array());
 
         // Planeta Marte orbitando alrededor del Sol
-        let planet4_distance = 5.1;
+        let planet4_distance = 6.4;
         let planet4_translation = Vec3::new(
-            planet4_distance * (time as f32 * 0.03).cos(),
+            planet4_distance * (time as f32 * 0.04).cos(),
             0.0,
-            planet4_distance * (time as f32 * 0.03).sin(),
+            planet4_distance * (time as f32 * 0.04).sin(),
         );
         let planet4_scale = 0.7;
         let planet4_model_matrix = create_model_matrix(planet4_translation, planet4_scale, Vec3::new(0.0, 0.0, 0.0));
@@ -451,14 +693,14 @@ fn main() {
             noise: create_noise(),
         };
 
-        render(&mut framebuffer, &planet4_uniforms, &planet_obj.get_vertex_array());
+        render_mars(&mut framebuffer, &planet4_uniforms, &planet_obj.get_vertex_array());
 
         // Planeta Júpiter orbitando alrededor del Sol
-        let planet5_distance = 7.1;
+        let planet5_distance = 7.9;
         let planet5_translation = Vec3::new(
-            planet5_distance * (time as f32 * 0.02).cos(),
+            planet5_distance * (time as f32 * 0.035).cos(),
             0.0,
-            planet5_distance * (time as f32 * 0.02).sin(),
+            planet5_distance * (time as f32 * 0.035).sin(),
         );
         let planet5_scale = 2.1;
         let planet5_model_matrix = create_model_matrix(planet5_translation, planet5_scale, Vec3::new(0.0, 0.0, 0.0));
@@ -477,9 +719,9 @@ fn main() {
         // Planeta Saturno orbitando alrededor del Sol
         let planet6_distance = 9.9;
         let planet6_translation = Vec3::new(
-            planet6_distance * (time as f32 * 0.015).cos(),
+            planet6_distance * (time as f32 * 0.03).cos(),
             0.0,
-            planet6_distance * (time as f32 * 0.015).sin(),
+            planet6_distance * (time as f32 * 0.03).sin(),
         );
         let planet6_scale = 1.8;
         let planet6_model_matrix = create_model_matrix(planet6_translation, planet6_scale, Vec3::new(0.0, 0.0, 0.0));
@@ -496,11 +738,11 @@ fn main() {
         render_saturn(&mut framebuffer, &planet6_uniforms, &planet_obj.get_vertex_array());
 
         // Planeta Urano orbitando alrededor del Sol
-        let planet7_distance = 12.6;
+        let planet7_distance = 12.1;
         let planet7_translation = Vec3::new(
-            planet7_distance * (time as f32 * 0.01).cos(),
+            planet7_distance * (time as f32 * 0.025).cos(),
             0.0,
-            planet7_distance * (time as f32 * 0.01).sin(),
+            planet7_distance * (time as f32 * 0.025).sin(),
         );
         let planet7_scale = 1.6;
         let planet7_model_matrix = create_model_matrix(planet7_translation, planet7_scale, Vec3::new(0.0, 0.0, 0.0));
@@ -514,14 +756,14 @@ fn main() {
             noise: create_noise(),
         };
 
-        render(&mut framebuffer, &planet7_uniforms, &planet_obj.get_vertex_array());
+        render_uranus(&mut framebuffer, &planet7_uniforms, &planet_obj.get_vertex_array());
 
         // Planeta Neptuno orbitando alrededor del Sol
-        let planet8_distance = 16.9;
+        let planet8_distance = 15.2;
         let planet8_translation = Vec3::new(
-            planet8_distance * (time as f32 * 0.01).cos(),
+            planet8_distance * (time as f32 * 0.02).cos(),
             0.0,
-            planet8_distance * (time as f32 * 0.01).sin(),
+            planet8_distance * (time as f32 * 0.02).sin(),
         );
         let planet8_scale = 1.6;
         let planet8_model_matrix = create_model_matrix(planet8_translation, planet8_scale, Vec3::new(0.0, 0.0, 0.0));
@@ -535,7 +777,7 @@ fn main() {
             noise: create_noise(),
         };
 
-        render(&mut framebuffer, &planet8_uniforms, &planet_obj.get_vertex_array());
+        render_neptune(&mut framebuffer, &planet8_uniforms, &planet_obj.get_vertex_array());
 
 
         // Movimiento orbital de la nave espacial
@@ -547,7 +789,7 @@ fn main() {
         );
 
         // Escala de la nave 
-        let spaceship_scale = 0.5;
+        let spaceship_scale = 0.6;
         let spaceship_model_matrix = create_model_matrix(spaceship_translation, spaceship_scale, Vec3::new(0.0, 0.0, 0.0));
 
         let spaceship_uniforms = Uniforms {
@@ -570,7 +812,7 @@ fn main() {
             navecita_distance * (time as f32 * -0.016).sin(), // Movimiento en Z
         );
 
-        let navecita_scale = 0.1;
+        let navecita_scale = 0.3;
         let navecita_model_matrix = create_model_matrix(navecita_translation, navecita_scale, Vec3::new(0.0, 0.0, 0.0));
 
         let navecita_uniforms = Uniforms {

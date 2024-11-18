@@ -55,7 +55,6 @@ pub fn fragment_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
         2 => cloud_shader(fragment, uniforms),
         3 => cellular_shader(fragment, uniforms),
         4 => lava_shader(fragment, uniforms),
-        0 => earth_shader(fragment, uniforms),
         6 => moon_shader(fragment, uniforms), 
         _ => cellular_shader(fragment, uniforms), // Default
     }
@@ -79,6 +78,73 @@ fn emissive_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
 
   final_color
 }
+
+pub fn earth_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
+  let x = fragment.vertex_position.x;
+  let y = fragment.vertex_position.y;
+
+  // Colores representativos de la Tierra
+  let color_ocean = Color::new(0, 0, 255);  // Azul océano
+  let color_land = Color::new(34, 139, 34); // Verde tierra
+  let color_cloud = Color::new(255, 255, 255); // Blanco para nubes
+
+  let time = uniforms.time as f32 * 0.01; // Control de velocidad para animación
+  let band_pattern = ((y * 10.0 + time).sin() * 0.5 + 0.5).clamp(0.0, 1.0);
+
+  // Decidimos el color dependiendo de la coordenada y para simular el océano y la tierra
+  let base_color = if band_pattern < 0.4 {
+      color_ocean
+  } else if band_pattern < 0.7 {
+      color_land
+  } else {
+      color_cloud
+  };
+
+  base_color
+}
+
+pub fn uranus_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
+  let x = fragment.vertex_position.x;
+  let y = fragment.vertex_position.y;
+
+  // Colores representativos de Urano
+  let color_uranus_base = Color::new(0, 255, 255); // Azul verdoso
+  let color_uranus_dark = Color::new(0, 128, 128); // Azul más oscuro para sombras
+
+  let time = uniforms.time as f32 * 0.02; // Control de velocidad
+  let band_pattern = ((y * 10.0 + time).sin() * 0.5 + 0.5).clamp(0.0, 1.0);
+
+  // Base color para las bandas en Urano
+  let base_color = if band_pattern < 0.5 {
+      color_uranus_base
+  } else {
+      color_uranus_dark
+  };
+
+  base_color
+}
+pub fn neptune_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
+  let x = fragment.vertex_position.x;
+  let y = fragment.vertex_position.y;
+
+  // Colores representativos de Neptuno
+  let color_neptune_base = Color::new(0, 0, 255); // Azul profundo
+  let color_neptune_dark = Color::new(0, 0, 139); // Azul oscuro
+
+  let time = uniforms.time as f32 * 0.02; // Control de velocidad
+  let band_pattern = ((y * 10.0 + time).sin() * 0.5 + 0.5).clamp(0.0, 1.0);
+
+  // Base color para las bandas en Neptuno
+  let base_color = if band_pattern < 0.5 {
+      color_neptune_base
+  } else {
+      color_neptune_dark
+  };
+
+  base_color
+}
+
+
 
 pub fn venus_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
   let x = fragment.vertex_position.x;
@@ -169,6 +235,35 @@ pub fn saturn_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
   final_color
 }
 
+pub fn mars_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
+  let x = fragment.vertex_position.x;
+  let y = fragment.vertex_position.y;
+
+  let color_red = Color::new(204, 102, 51);   // Rojo-rojizo
+  let color_dark_red = Color::new(139, 69, 19); // Rojo oscuro
+  let color_rocky = Color::new(160, 82, 45);   // Superficie rocosa
+
+  let time = uniforms.time as f32 * 0.05; // Control de velocidad
+  let band_pattern = ((y * 10.0 + time).sin() * 0.5 + 0.5).clamp(0.0, 1.0);
+
+  // Base color para las bandas
+  let base_color = if band_pattern < 0.5 {
+      color_red
+  } else {
+      color_dark_red
+  };
+
+  // Superficie rocosa (más texturizada)
+  let rocky_pattern = ((x * y + time).sin() * 0.5 + 0.5).clamp(0.0, 1.0);
+  let final_color = if rocky_pattern > 0.7 {
+      color_rocky
+  } else {
+      base_color
+  };
+
+  final_color
+}
+
 
 // Función para cambiar el índice del shader activo
 pub fn switch_shader() {
@@ -229,51 +324,6 @@ fn sun_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
 }
 
 
-
-fn earth_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
-  let zoom = 80.0; // Escala del mapa de ruido para definir detalles de tierra y océanos
-  let x = fragment.vertex_position.x;
-  let y = fragment.vertex_position.y;
-  let t = uniforms.time as f32 * 0.1; // Tiempo para simular ligera rotación
-
-  // Valor de ruido para la superficie de la Tierra
-  let surface_noise = uniforms.noise.get_noise_2d(x * zoom + t, y * zoom);
-
-  // Colores para diferentes zonas
-  let ocean_color = Color::new(0, 105, 148);        // Azul para océanos
-  let land_color = Color::new(34, 139, 34);         // Verde para tierra
-  let desert_color = Color::new(210, 180, 140);     // Arena para desiertos
-  let snow_color = Color::new(255, 250, 250);       // Blanco para nieve en zonas polares
-  let cloud_color = Color::new(255, 255, 255); // Blanco semitransparente para nubes
-
-  // Umbrales para diferenciar áreas geográficas
-  let snow_threshold = 0.7;
-  let land_threshold = 0.4;
-  let desert_threshold = 0.3;
-
-  // Determinación de color de la superficie
-  let base_color = if y.abs() > snow_threshold {
-      snow_color // Zonas polares
-  } else if surface_noise > land_threshold {
-      land_color // Zonas verdes
-  } else if surface_noise > desert_threshold {
-      desert_color // Desiertos
-  } else {
-      ocean_color // Océanos
-  };
-
-  // Agregar nubes (ruido extra sobre el océano y la tierra)
-  let cloud_noise = uniforms.noise.get_noise_2d(x * zoom * 0.5 + t * 0.5, y * zoom * 0.5 + t * 0.5);
-  let final_color = if cloud_noise > 0.6 {
-      // Si hay nubes, mezcla el color base con el color de las nubes
-      base_color.lerp(&cloud_color, 0.3)
-  } else {
-      base_color
-  };
-
-  // Ajusta la intensidad del color final para simular la iluminación
-  final_color * fragment.intensity
-}
 
 
 fn black_and_white(fragment: &Fragment, uniforms: &Uniforms) -> Color {
