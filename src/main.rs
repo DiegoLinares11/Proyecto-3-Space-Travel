@@ -17,7 +17,7 @@ use vertex::Vertex;
 use obj::Obj;
 use camera::Camera;
 use triangle::triangle;
-use shaders::{vertex_shader, fragment_shader, switch_shader, fragment_shader2};
+use shaders::{vertex_shader, fragment_shader, switch_shader, fragment_shader2, venus_shader, jupiter_shader, saturn_shader};
 use fastnoise_lite::{FastNoiseLite, NoiseType, FractalType};
 
 pub struct Uniforms {
@@ -183,6 +183,119 @@ fn render_sol(framebuffer: &mut Framebuffer, uniforms: &Uniforms, vertex_array: 
     }
 }
 
+fn render_venus(framebuffer: &mut Framebuffer, uniforms: &Uniforms, vertex_array: &[Vertex]) {
+    // Vertex Shader
+    let mut transformed_vertices = Vec::with_capacity(vertex_array.len());
+    for vertex in vertex_array {
+        let transformed = vertex_shader(vertex, uniforms);
+        transformed_vertices.push(transformed);
+    }
+
+    // Primitive Assembly
+    let mut triangles = Vec::new();
+    for i in (0..transformed_vertices.len()).step_by(3) {
+        if i + 2 < transformed_vertices.len() {
+            triangles.push([
+                transformed_vertices[i].clone(),
+                transformed_vertices[i + 1].clone(),
+                transformed_vertices[i + 2].clone(),
+            ]);
+        }
+    }
+
+    // Rasterización y procesamiento de fragmentos
+    let mut fragments = Vec::new();
+    for tri in &triangles {
+        fragments.extend(triangle(&tri[0], &tri[1], &tri[2]));
+    }
+
+    // Fragment Shader específico de Venus
+    for fragment in fragments {
+        let x = fragment.position.x as usize;
+        let y = fragment.position.y as usize;
+
+        if x < framebuffer.width && y < framebuffer.height {
+            // Aplicar el shader específico para Venus
+            let shaded_color = venus_shader(&fragment, uniforms);
+            let color = shaded_color.to_hex();
+            framebuffer.set_current_color(color);
+            framebuffer.point(x, y, fragment.depth);
+        }
+    }
+}
+
+fn render_jupiter(framebuffer: &mut Framebuffer, uniforms: &Uniforms, vertex_array: &[Vertex]) {
+    let mut transformed_vertices = Vec::with_capacity(vertex_array.len());
+    for vertex in vertex_array {
+        let transformed = vertex_shader(vertex, uniforms);
+        transformed_vertices.push(transformed);
+    }
+
+    let mut triangles = Vec::new();
+    for i in (0..transformed_vertices.len()).step_by(3) {
+        if i + 2 < transformed_vertices.len() {
+            triangles.push([
+                transformed_vertices[i].clone(),
+                transformed_vertices[i + 1].clone(),
+                transformed_vertices[i + 2].clone(),
+            ]);
+        }
+    }
+
+    let mut fragments = Vec::new();
+    for tri in &triangles {
+        fragments.extend(triangle(&tri[0], &tri[1], &tri[2]));
+    }
+
+    for fragment in fragments {
+        let x = fragment.position.x as usize;
+        let y = fragment.position.y as usize;
+
+        if x < framebuffer.width && y < framebuffer.height {
+            let shaded_color = jupiter_shader(&fragment, uniforms);
+            let color = shaded_color.to_hex();
+            framebuffer.set_current_color(color);
+            framebuffer.point(x, y, fragment.depth);
+        }
+    }
+}
+
+fn render_saturn(framebuffer: &mut Framebuffer, uniforms: &Uniforms, vertex_array: &[Vertex]) {
+    let mut transformed_vertices = Vec::with_capacity(vertex_array.len());
+    for vertex in vertex_array {
+        let transformed = vertex_shader(vertex, uniforms);
+        transformed_vertices.push(transformed);
+    }
+
+    let mut triangles = Vec::new();
+    for i in (0..transformed_vertices.len()).step_by(3) {
+        if i + 2 < transformed_vertices.len() {
+            triangles.push([
+                transformed_vertices[i].clone(),
+                transformed_vertices[i + 1].clone(),
+                transformed_vertices[i + 2].clone(),
+            ]);
+        }
+    }
+
+    let mut fragments = Vec::new();
+    for tri in &triangles {
+        fragments.extend(triangle(&tri[0], &tri[1], &tri[2]));
+    }
+
+    for fragment in fragments {
+        let x = fragment.position.x as usize;
+        let y = fragment.position.y as usize;
+
+        if x < framebuffer.width && y < framebuffer.height {
+            let shaded_color = saturn_shader(&fragment, uniforms);
+            let color = shaded_color.to_hex();
+            framebuffer.set_current_color(color);
+            framebuffer.point(x, y, fragment.depth);
+        }
+    }
+}
+
 
 
 fn main() {
@@ -295,7 +408,7 @@ fn main() {
             noise: create_noise(),
         };
 
-        render(&mut framebuffer, &planet2_uniforms, &planet_obj.get_vertex_array());
+        render_venus(&mut framebuffer, &planet2_uniforms, &planet_obj.get_vertex_array());
 
 
         // Planeta Tierra orbitando alrededor del Sol
@@ -359,7 +472,7 @@ fn main() {
             noise: create_noise(),
         };
 
-        render(&mut framebuffer, &planet5_uniforms, &planet_obj.get_vertex_array());
+        render_jupiter(&mut framebuffer, &planet5_uniforms, &planet_obj.get_vertex_array());
 
         // Planeta Saturno orbitando alrededor del Sol
         let planet6_distance = 9.9;
@@ -380,7 +493,7 @@ fn main() {
             noise: create_noise(),
         };
 
-        render(&mut framebuffer, &planet6_uniforms, &planet_obj.get_vertex_array());
+        render_saturn(&mut framebuffer, &planet6_uniforms, &planet_obj.get_vertex_array());
 
         // Planeta Urano orbitando alrededor del Sol
         let planet7_distance = 12.6;

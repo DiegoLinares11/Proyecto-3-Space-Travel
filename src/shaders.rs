@@ -80,11 +80,100 @@ fn emissive_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
   final_color
 }
 
+pub fn venus_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
+  let x = fragment.vertex_position.x;
+  let y = fragment.vertex_position.y;
+
+  // Colores base para simular las nubes densas de Venus
+  let color_soft_yellow = Color::new(255, 228, 181); // Amarillo suave
+  let color_light_gray = Color::new(220, 220, 220);  // Gris claro
+  let color_white = Color::new(255, 250, 240);       // Blanco suave
+
+  // Crear un patrón de franjas onduladas con valores de onda ajustados
+  let time = uniforms.time as f32 * 0.01; // Control de velocidad para movimiento sutil
+  let wave_pattern_x = ((x * 3.0 + time).sin() * 0.5 + 0.5).clamp(0.0, 1.0);
+  let wave_pattern_y = ((y * 3.0 + time).cos() * 0.5 + 0.5).clamp(0.0, 1.0);
+
+  // Mezcla de colores para simular las capas de nubes con ondas
+  let base_color = color_soft_yellow.lerp(&color_light_gray, wave_pattern_x);
+  let final_color = base_color.lerp(&color_white, wave_pattern_y);
+
+  final_color
+}
+
+pub fn jupiter_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
+  let x = fragment.vertex_position.x;
+  let y = fragment.vertex_position.y;
+
+  
+  let color_light_brown = Color::new(210, 180, 140); 
+  let color_dark_brown = Color::new(139, 69, 19);    
+  let color_white = Color::new(245, 245, 245);       
+  let color_red_spot = Color::new(255, 69, 0);       
+
+
+  let time = uniforms.time as f32 * 0.02; // Control de velocidad
+  let band_pattern = ((y * 10.0 + time).sin() * 0.5 + 0.5).clamp(0.0, 1.0);
+
+ 
+  let base_color = if band_pattern < 0.3 {
+      color_light_brown
+  } else if band_pattern < 0.6 {
+      color_white
+  } else {
+      color_dark_brown
+  };
+
+  let red_spot_x = (x - 0.3).powi(2) / 0.1;
+  let red_spot_y = (y + 0.2).powi(2) / 0.2;
+  let red_spot_intensity = 1.0 - (red_spot_x + red_spot_y).clamp(0.0, 1.0);
+
+  let final_color = if red_spot_intensity > 0.7 {
+      color_red_spot.lerp(&base_color, red_spot_intensity)
+  } else {
+      base_color
+  };
+
+  final_color
+}
+
+pub fn saturn_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
+  let x = fragment.vertex_position.x;
+  let y = fragment.vertex_position.y;
+
+  let color_light_brown = Color::new(205, 133, 63); 
+  let color_dark_brown = Color::new(139, 69, 19);
+  let color_ring = Color::new(160, 160, 160); // Anillos
+  let color_white = Color::new(245, 245, 245);
+
+  let time = uniforms.time as f32 * 0.02; // Control de velocidad
+  let band_pattern = ((y * 10.0 + time).sin() * 0.5 + 0.5).clamp(0.0, 1.0);
+
+  // Base color para las bandas
+  let base_color = if band_pattern < 0.3 {
+      color_light_brown
+  } else if band_pattern < 0.6 {
+      color_white
+  } else {
+      color_dark_brown
+  };
+
+  // Añadir anillos alrededor de Saturno
+  let ring_pattern = (y.abs() - 0.5).clamp(0.0, 1.0);
+  let final_color = if ring_pattern > 0.3 {
+      color_ring
+  } else {
+      base_color
+  };
+
+  final_color
+}
+
 
 // Función para cambiar el índice del shader activo
 pub fn switch_shader() {
   unsafe {
-      SHADER_INDEX = (SHADER_INDEX + 1) % 7; // Cambia al siguiente shader, volviendo a 0 si supera 4
+      SHADER_INDEX = (SHADER_INDEX + 1) % 7; 
   }
 }
 
